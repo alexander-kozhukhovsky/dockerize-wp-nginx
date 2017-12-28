@@ -1,0 +1,43 @@
+version: '3'
+services:
+  nginx:
+    image: nginx:latest
+    ports:
+      - 80:80
+    volumes:
+      - ./nginx:/etc/nginx/conf.d
+      - ./logs/nginx:/var/log/nginx
+      - ./wordpress:/var/www/html
+    links:
+      - wordpress
+    restart: always
+  db:
+    image: mysql:5.7
+    volumes:
+      - ./db_data:/var/lib/mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: wppass
+      MYSQL_DATABASE: wpdb
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    links:
+      - db
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+    ports:
+      - 8080:80
+  wordpress:
+    image: wordpress:4.9.1-php7.2-fpm
+    links:
+      - db
+    ports:
+      - 9000:9000
+    volumes:
+      - ./wordpress:/var/www/html/
+    environment:
+      WORDPRESS_DB_NAME: wpdb
+      WORDPRESS_DB_HOST: db:3306
+      WORDPRESS_DB_PASSWORD: wppass
+    restart: always
